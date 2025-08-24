@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useAuthStore } from "@/app/store/useAuthStore";
+import { showErrorToast, showSuccessToast } from "@/components/CustomToast";
 import { FullScreenLoader } from "@/components/FullScreenLoader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,7 +24,6 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 
 type FileType = {
   id: string;
@@ -102,14 +102,14 @@ const FilePage = () => {
       const json = await res.json();
 
       if (json.success === false) {
-        toast.success(json.msg);
+        showErrorToast(json.msg);
         return;
       }
 
       setFiles(json.files);
       setParsedFiles(json.files);
     } catch (error) {
-      toast.error("Failed to fetch files");
+      showErrorToast("Failed to fetch files");
       console.error("Failed to fetch files:", error);
     } finally {
       setLoadingFiles(false);
@@ -139,9 +139,10 @@ const FilePage = () => {
     try {
       setUploading(true);
       await axios.post("/api/files/upload", formData);
+      showSuccessToast("Files uploaded");
     } catch (error) {
       console.error("File upload failed:", error);
-      toast.error("Failed to upload files");
+      showErrorToast("Failed to upload files");
     } finally {
       setDialogOpen(false);
       setUploading(false);
@@ -163,10 +164,10 @@ const FilePage = () => {
       await axios.delete("/api/files/delete", {
         data: { fileId: id },
       });
-      toast.success("File deleted");
+      showSuccessToast("File Deleted");
     } catch (error) {
       console.error("File deletion failed:", error);
-      toast.error("Failed to delete files");
+      showErrorToast("Failed to delete files");
     } finally {
       setDeletingFiles(false);
       fetchFiles();
