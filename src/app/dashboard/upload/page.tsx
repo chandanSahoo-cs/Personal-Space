@@ -3,10 +3,12 @@
 import type React from "react";
 
 import { useAuthStore } from "@/app/store/useAuthStore";
+import { FullScreenLoader } from "@/components/FullScreenLoader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { UploadDialog } from "@/components/UploadDialog";
+import { useConfirm } from "@/hooks/UseConfirm";
 import axios from "axios";
 import {
   FileArchiveIcon,
@@ -89,6 +91,7 @@ const FilePage = () => {
 
   const [parsedFiles, setParsedFiles] = useState<FileType[]>(files);
   const [loadingFiles, setLoadingFiles] = useState(false);
+  const [deletingFiles, setDeletingFiles] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -98,7 +101,7 @@ const FilePage = () => {
       const res = await fetch("/api/files/get");
       const json = await res.json();
 
-      if (!json.success) {
+      if (json.success === false) {
         toast.success(json.msg);
         return;
       }
@@ -133,28 +136,40 @@ const FilePage = () => {
       formData.append("files", file);
     }
 
-    setUploading(true);
     try {
+      setUploading(true);
       await axios.post("/api/files/upload", formData);
-      fetchFiles();
-      setDialogOpen(false);
     } catch (error) {
       console.error("File upload failed:", error);
-      // Optionally show an error message to the user
+      toast.error("Failed to upload files");
     } finally {
+      setDialogOpen(false);
       setUploading(false);
+      fetchFiles();
     }
   };
 
+  const [DeleteDialog, confirmDelete] = useConfirm(
+    "Delete File",
+    "Are you sure you want to delete file?"
+  );
+
   async function deleteFile(id: string) {
+    const ok = await confirmDelete();
+    if (!ok) return;
+
     try {
+      setDeletingFiles(true);
       await axios.delete("/api/files/delete", {
         data: { fileId: id },
       });
-      fetchFiles();
+      toast.success("File deleted");
     } catch (error) {
       console.error("File deletion failed:", error);
-      // Optionally show an error message to the user
+      toast.error("Failed to delete files");
+    } finally {
+      setDeletingFiles(false);
+      fetchFiles();
     }
   }
 
@@ -168,6 +183,9 @@ const FilePage = () => {
     <div className="min-h-screen bg-[url('/image1.jpg')] bg-cover bg-center bg-no-repeat p-8" />
   ) : (
     <>
+      <DeleteDialog />
+      {loadingFiles && <FullScreenLoader message="Loading files" />}
+      {deletingFiles && <FullScreenLoader message="Deleting files" />}
       <UploadDialog
         isOpen={dialogOpen}
         onClose={dialogClose}
@@ -175,7 +193,7 @@ const FilePage = () => {
         uploading={uploading}
       />
       <div className="min-h-screen bg-[url('/image1.jpg')] bg-cover bg-center bg-no-repeat p-8 flex">
-        <div className="p-8 space-y-8 bg-[#1d1f21]/90 backdrop-blur-sm rounded-3xl shadow-xl border border-[#2e3136] max-w-4xl mx-auto  text-gray-100">
+        <div className="p-8 space-y-8 bg-[#1d1f21]/90 backdrop-blur-sm rounded-3xl shadow-xl border border-[#2e3136] w-[900px] mx-auto  text-gray-100">
           {/* Header and Upload Section */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-[#2e3136]">
             <h1 className="text-3xl font-bold text-gray-50">My Files</h1>
