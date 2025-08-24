@@ -3,21 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { File } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-export async function getDrivePreviewUrl(
-  fileId: string
-): Promise<string | null> {
-  try {
-    const res = await drive.files.get({
-      fileId,
-      fields: "id, name, mimeType, webViewLink, webContentLink",
-    });
-
-    return res.data.webViewLink ?? null;
-  } catch (error) {
-    return null;
-  }
-}
-
 export async function GET() {
   try {
     const files = await prisma.file.findMany({
@@ -41,5 +26,18 @@ export async function GET() {
       { files: null, success: false, msg: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+async function getDrivePreviewUrl(fileId: string): Promise<string | null> {
+  try {
+    const res = await drive.files.get({
+      fileId,
+      fields: "id, name, mimeType, webViewLink, webContentLink",
+    });
+
+    return res.data.webViewLink ?? null;
+  } catch (error) {
+    return null;
   }
 }
