@@ -1,6 +1,22 @@
-import { getDrivePreviewUrl } from "@/lib/googleDrive";
+import drive from "@/lib/googleDrive";
 import { prisma } from "@/lib/prisma";
 import { File } from "@prisma/client";
+import { NextResponse } from "next/server";
+
+export async function getDrivePreviewUrl(
+  fileId: string
+): Promise<string | null> {
+  try {
+    const res = await drive.files.get({
+      fileId,
+      fields: "id, name, mimeType, webViewLink, webContentLink",
+    });
+
+    return res.data.webViewLink ?? null;
+  } catch (error) {
+    return null;
+  }
+}
 
 export async function GET() {
   try {
@@ -15,9 +31,15 @@ export async function GET() {
       })
     );
 
-    return Response.json({ files: filesWithPreview });
+    return NextResponse.json(
+      { files: filesWithPreview, success: true, msg: "File found" },
+      { status: 200 }
+    );
   } catch (err) {
     console.error("Failed to fetch files:", err);
-    return new Response("Internal server error", { status: 500 });
+    return NextResponse.json(
+      { files: null, success: false, msg: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

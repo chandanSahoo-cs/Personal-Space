@@ -15,20 +15,6 @@ const token = {
 const oAuth2 = new google.auth.OAuth2(client_id, client_secret);
 oAuth2.setCredentials(token);
 
-export const drive = google.drive({ version: "v3", auth: oAuth2 });
+const drive = google.drive({ version: "v3", auth: oAuth2 });
 
-export async function getDrivePreviewUrl(
-  fileId: string
-): Promise<string | null> {
-  try {
-    const res = await drive.files.get({
-      fileId,
-      fields: "id, name, mimeType, webViewLink, webContentLink",
-    });
-
-    return res.data.webViewLink ?? null;
-  } catch (error) {
-    console.error("Failed to fetch preview URL:", error);
-    return null;
-  }
-}
+export default drive;

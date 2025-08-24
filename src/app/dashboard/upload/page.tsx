@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,18 +9,19 @@ import { Input } from "@/components/ui/input";
 import { UploadDialog } from "@/components/UploadDialog";
 import axios from "axios";
 import {
-  FileArchive,
-  FileAudio,
-  FileCode,
+  FileArchiveIcon,
+  FileAudioIcon,
+  FileCodeIcon,
   FileIcon,
-  FileSpreadsheet,
-  FileText,
-  FileVideo,
+  FileSpreadsheetIcon,
+  FileTextIcon,
+  FileVideoIcon,
   ImageIcon,
   Trash2,
   UploadCloud,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type FileType = {
   id: string;
@@ -34,67 +37,91 @@ const getFileIcon = (mimeType: string) => {
   if (mimeType.startsWith("image/"))
     return <ImageIcon className="w-6 h-6 text-blue-400" />;
   if (mimeType.startsWith("video/"))
-    return <FileVideo className="w-6 h-6 text-purple-400" />;
+    return <FileVideoIcon className="w-6 h-6 text-purple-400" />;
   if (mimeType.startsWith("audio/"))
-    return <FileAudio className="w-6 h-6 text-orange-400" />;
+    return <FileAudioIcon className="w-6 h-6 text-orange-400" />;
   if (mimeType.includes("pdf"))
-    return <FileText className="w-6 h-6 text-red-400" />;
+    return <FileTextIcon className="w-6 h-6 text-red-400" />;
   if (
     mimeType.includes("zip") ||
     mimeType.includes("rar") ||
     mimeType.includes("tar")
   )
-    return <FileArchive className="w-6 h-6 text-yellow-400" />;
+    return <FileArchiveIcon className="w-6 h-6 text-yellow-400" />;
   if (mimeType.includes("spreadsheet") || mimeType.includes("excel"))
-    return <FileSpreadsheet className="w-6 h-6 text-green-400" />;
+    return <FileSpreadsheetIcon className="w-6 h-6 text-green-400" />;
   if (
     mimeType.includes("text/") ||
     mimeType.includes("json") ||
     mimeType.includes("xml")
   )
-    return <FileText className="w-6 h-6 text-gray-400" />;
+    return <FileTextIcon className="w-6 h-6 text-gray-400" />;
   if (
     mimeType.includes("javascript") ||
     mimeType.includes("typescript") ||
     mimeType.includes("html") ||
     mimeType.includes("css")
   )
-    return <FileCode className="w-6 h-6 text-indigo-400" />;
+    return <FileCodeIcon className="w-6 h-6 text-indigo-400" />;
   return <FileIcon className="w-6 h-6 text-gray-500" />;
 };
 
 const searchFile = (files: FileType[], search: string) => {
-  if (search === "") return files;
-  const lowerQuery = search.toLowerCase();
+  const trimmed = search.trim().toLowerCase();
+  if (trimmed === "") return files;
 
-  return files.filter((file) => file.name.toLowerCase().includes(lowerQuery));
+  return files.filter((file) => file.name.toLowerCase().includes(trimmed));
+};
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return (
+    Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i]
+  );
 };
 
 const FilePage = () => {
+  const { isOpen } = useAuthStore();
   const [files, setFiles] = useState<FileType[]>([]);
+
   const [parsedFiles, setParsedFiles] = useState<FileType[]>(files);
+  const [loadingFiles, setLoadingFiles] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
 
-  // Fetch files from backend
   const fetchFiles = useCallback(async () => {
     try {
+      setLoadingFiles(true);
       const res = await fetch("/api/files/get");
       const json = await res.json();
+
+      if (!json.success) {
+        toast.success(json.msg);
+        return;
+      }
+
       setFiles(json.files);
       setParsedFiles(json.files);
     } catch (error) {
+      toast.error("Failed to fetch files");
       console.error("Failed to fetch files:", error);
+    } finally {
+      setLoadingFiles(false);
     }
   }, []);
 
   useEffect(() => {
+    if (isOpen) return;
     fetchFiles();
-  }, []);
+  }, [isOpen]);
 
   const inputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    const parsedFile = searchFile(files, search);
+    const value = e.target.value;
+    setSearch(value);
+    const parsedFile = searchFile(files, value);
     setParsedFiles(parsedFile);
   };
 
@@ -130,8 +157,6 @@ const FilePage = () => {
       // Optionally show an error message to the user
     }
   }
-
-  const { isOpen } = useAuthStore();
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -193,33 +218,42 @@ const FilePage = () => {
                 {parsedFiles.map((file) => (
                   <Card
                     key={file.id}
-                    className="bg-[#2e3136] border border-[#40444b] rounded-xl h-44 shadow-sm hover:shadow-md transition-shadow duration-200 mr-2">
-                    <CardContent className="pl-4 pr-4 flex flex-col space-y-3">
-                      <div className="flex items-center gap-3">
-                        {getFileIcon(file.type)}
-                        <p className="font-semibold text-gray-50 truncate flex-grow">
-                          {file.name}
-                        </p>
+                    className="bg-[#1d1f21]/80 backdrop-blur-sm border border-[#2e3136]/60 rounded-xl h-44 shadow-lg hover:shadow-xl hover:bg-[#1d1f21]/90 hover:border-[#5865f2]/40 transition-all duration-300 mr-2 group">
+                    <CardContent className="pl-4 pr-4 pt-4 flex flex-col h-full justify-between">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="flex-shrink-0 p-2 bg-[#2e3136]/50 rounded-lg group-hover:bg-[#2e3136]/70 transition-colors duration-200">
+                          {getFileIcon(file.type)}
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <p className="font-semibold text-gray-50 truncate text-sm leading-tight">
+                            {file.name}
+                          </p>
+                          <div className="text-xs text-gray-400 mt-1 flex justify-between items-center">
+                            <span className="capitalize">
+                              {file.type.split("/")[1] || file.type}
+                            </span>
+                            <span className="font-medium">
+                              {formatFileSize(file.size)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-sm text-gray-400 flex justify-between items-center">
-                        <span>{file.type.split("/")[1] || file.type}</span>
-                        <span>{(file.size / 1024).toFixed(2)} KB</span>
-                      </div>
-                      <div className="flex gap-2 mt-2">
+
+                      <div className="flex gap-2 mt-auto">
                         <a
                           href={file.previewUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-grow text-center bg-[#40444b] hover:bg-[#50545b] text-[#5865f2] font-medium py-2 rounded-lg text-sm transition-colors duration-200">
+                          className="flex-grow text-center bg-[#5865f2]/10 border border-[#5865f2]/30 hover:bg-[#5865f2]/20 hover:border-[#5865f2]/50 text-[#5865f2] font-medium py-2.5 rounded-lg text-sm transition-all duration-200 backdrop-blur-sm">
                           Preview
                         </a>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-400 hover:bg-red-900/20 hover:text-red-500 rounded-lg"
+                          className="text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 border border-transparent rounded-lg transition-all duration-200 backdrop-blur-sm"
                           onClick={() => deleteFile(file.id)}
                           aria-label={`Delete ${file.name}`}>
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </Button>
                       </div>
                     </CardContent>

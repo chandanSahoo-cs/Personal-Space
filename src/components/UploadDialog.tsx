@@ -49,7 +49,6 @@ export const UploadDialog = ({
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       onUpload(e.dataTransfer.files);
-      onClose(); // Close dialog after drop
     }
   };
 

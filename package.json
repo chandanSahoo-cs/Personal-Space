@@ -2,6 +2,7 @@
   "name": "personal_space",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
@@ -23,6 +24,7 @@
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "sonner": "^2.0.7",
     "speakeasy": "^2.0.0",
     "tailwind-merge": "^3.3.1",
     "zustand": "^5.0.7"
@@ -39,6 +41,7 @@
     "eslint-config-next": "15.4.5",
     "prisma": "^6.13.0",
     "tailwindcss": "^4",
+    "tsx": "^4.20.5",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
   }

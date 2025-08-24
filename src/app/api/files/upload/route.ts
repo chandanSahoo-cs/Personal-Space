@@ -1,4 +1,4 @@
-import { drive } from "@/lib/googleDrive";
+import drive from "@/lib/googleDrive";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { Readable } from "stream";
@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const files = formData.getAll("files") as File[];
 
   if (!files || files.length === 0) {
-    return NextResponse.json({ error: "No files received" }, { status: 400 });
+    return NextResponse.json({ success: false, files: [] }, { status: 400 });
   }
 
   const folderId = formData.get("folderId")?.toString() ?? null;
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       where: { id: folderId },
     });
     if (!folderExists) {
-      return NextResponse.json({ error: "Invalid folderId" }, { status: 400 });
+      return NextResponse.json({ success: false, files: [] }, { status: 400 });
     }
   }
 
@@ -57,8 +57,12 @@ export async function POST(req: NextRequest) {
       uploadedFiles.push(dbEntry);
     } catch (error) {
       console.error(`Error uploading file ${file.name}:`, error);
+      return NextResponse.json({ success: false, files: [] }, { status: 500 });
     }
   }
 
-  return NextResponse.json({ success: true, files: uploadedFiles });
+  return NextResponse.json(
+    { success: true, files: uploadedFiles },
+    { status: 200 }
+  );
 }
