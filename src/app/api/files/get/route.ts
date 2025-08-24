@@ -31,6 +31,14 @@ export async function GET() {
 
 async function getDrivePreviewUrl(fileId: string): Promise<string | null> {
   try {
+    await drive.permissions.create({
+      fileId,
+      requestBody: {
+        role: "reader",
+        type: "anyone", 
+      },
+    });
+
     const res = await drive.files.get({
       fileId,
       fields: "id, name, mimeType, webViewLink, webContentLink",

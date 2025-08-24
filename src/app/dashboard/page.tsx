@@ -31,16 +31,6 @@ const Page = () => {
               </div>
             </div>
           </div>
-
-          {/* <div className="flex-1 bg-[#2f3136] rounded-2xl p-6 border border-[#40444b] hover:border-[#5865f2] transition-colors">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-white text-xl font-semibold mb-1">
-                  QuickQuill
-                </h2>
-              </div>
-            </div>
-          </div> */}
         </div>
       </div>
     </div>
