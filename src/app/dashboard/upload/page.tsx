@@ -5,6 +5,7 @@ import type React from "react";
 import { useAuthStore } from "@/app/store/useAuthStore";
 import { showErrorToast, showSuccessToast } from "@/components/CustomToast";
 import { FullScreenLoader } from "@/components/FullScreenLoader";
+import { RenameDialog } from "@/components/RenameDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { UploadDialog } from "@/components/UploadDialog";
 import { useConfirm } from "@/hooks/UseConfirm";
 import axios from "axios";
 import {
+  Edit3Icon,
   FileArchiveIcon,
   FileAudioIcon,
   FileCodeIcon,
@@ -25,7 +27,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-type FileType = {
+export type FileType = {
   id: string;
   name: string;
   previewUrl: string;
@@ -150,6 +152,31 @@ const FilePage = () => {
     }
   };
 
+  const [renameDialog, setRenameDialog] = useState(false);
+  const [renameFile, setRenameFile] = useState<FileType | null>(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+
+  const handleRename = async ({
+    fileId,
+    newName,
+  }: {
+    fileId: string;
+    newName: string;
+  }) => {
+    try {
+      setIsRenaming(true);
+      await axios.post("/api/files/rename", { fileId, newName });
+      showSuccessToast("File renamed");
+      fetchFiles();
+      setRenameDialog(false);
+    } catch (error) {
+      console.error("Rename failed:", error);
+      showErrorToast("Failed to rename files");
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
   const [DeleteDialog, confirmDelete] = useConfirm(
     "Delete File",
     "Are you sure you want to delete file?"
@@ -184,6 +211,16 @@ const FilePage = () => {
     <div className="min-h-screen bg-[url('/image1.jpg')] bg-cover bg-center bg-no-repeat p-8" />
   ) : (
     <>
+      {renameFile && (
+        <RenameDialog
+          isOpen={renameDialog}
+          onClose={() => setRenameDialog(false)}
+          onRename={handleRename}
+          file={renameFile}
+          isRenaming={isRenaming}
+        />
+      )}
+
       <DeleteDialog />
       {loadingFiles && <FullScreenLoader message="Loading files" />}
       {deletingFiles && <FullScreenLoader message="Deleting files" />}
@@ -266,6 +303,17 @@ const FilePage = () => {
                           className="flex-grow text-center bg-[#5865f2]/10 border border-[#5865f2]/30 hover:bg-[#5865f2]/20 hover:border-[#5865f2]/50 text-[#5865f2] font-medium py-2.5 rounded-lg text-sm transition-all duration-200 backdrop-blur-sm">
                           Preview
                         </a>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-[#5865f2] hover:bg-[#5865f2]/10 hover:text-[#4752c4] hover:border-[#5865f2]/30 border border-transparent rounded-lg transition-all duration-200 backdrop-blur-sm"
+                          onClick={() => {
+                            setRenameFile(file);
+                            setRenameDialog(true);
+                          }}
+                          aria-label={`Rename ${file.name}`}>
+                          <Edit3Icon size={16} />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
