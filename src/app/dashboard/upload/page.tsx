@@ -347,7 +347,7 @@ const FilePage = () => {
                 No files uploaded yet. Start by dragging files here or using the upload button!
               </p>
             ) : (
-              <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto h-[410px] contest-scrollbar",
+              <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 gap-y-0 overflow-y-auto h-[410px] contest-scrollbar",
                 isMultiSelectMode &&  "h-[311px]"
               )}>
                 {parsedFiles.map((file) => (
