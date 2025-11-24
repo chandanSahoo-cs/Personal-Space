@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
 export function middleware(req: Request) {
+  console.log("I'm middleware");
+
+  console.log("url: ",req.url);
   const allowedOrigins = [
     "http://localhost:3000",
     "https://personal-space-iota.vercel.app",
@@ -8,12 +11,12 @@ export function middleware(req: Request) {
 
   const origin = req.headers.get("origin");
   const auth = req.headers.get("authorization") || "";
-
-  const isValidOrigin =
-    allowedOrigins.includes(String(origin));
+  console.log("origin:", origin);
+  console.log("auth:", auth);
+  const isValidOrigin = allowedOrigins.includes(String(origin));
   const isValidAuth = auth === `Bearer ${process.env.AUTOMATE_SECRET}`;
 
-  if (isValidAuth || (origin === null && isValidOrigin)) {
+  if ((isValidAuth && origin === null) || isValidOrigin) {
     return NextResponse.next();
   }
 

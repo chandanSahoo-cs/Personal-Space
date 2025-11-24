@@ -106,7 +106,10 @@ const FilePage = () => {
   const fetchFiles = useCallback(async () => {
     try {
       setLoadingFiles(true);
-      const res = await fetch("/api/files/get");
+      const res = await fetch("/api/files/get", {
+        method: "POST",
+        cache: "no-store",
+      });
       const json = await res.json();
 
       if (json.success === false) {

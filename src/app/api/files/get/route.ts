@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { File } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function POST() {
   try {
     const files = await prisma.file.findMany({
       orderBy: { createdAt: "desc" },
@@ -35,7 +35,7 @@ async function getDrivePreviewUrl(fileId: string): Promise<string | null> {
       fileId,
       requestBody: {
         role: "reader",
-        type: "anyone", 
+        type: "anyone",
       },
     });
 
