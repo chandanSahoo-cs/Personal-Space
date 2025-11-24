@@ -14,10 +14,10 @@ export function middleware(req: Request) {
   console.log("Auth:", auth);
 
   const isValidOrigin =
-    allowedOrigins.includes(String(origin)) || origin === null;
+    allowedOrigins.includes(String(origin));
   const isValidAuth = auth === `Bearer ${process.env.AUTOMATE_SECRET}`;
 
-  if (isValidAuth || isValidOrigin) {
+  if (isValidAuth || (origin === null && isValidOrigin)) {
     return NextResponse.next();
   }
 
