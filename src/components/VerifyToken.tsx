@@ -116,10 +116,10 @@ export const VerifyToken = () => {
             <Shield className="w-10 h-10 text-white" />
           </div>
           <DialogTitle className="text-2xl font-semibold text-white mb-2">
-            Two-Factor Authentication
+            You good?
           </DialogTitle>
           <DialogDescription className="text-indigo-100 text-sm">
-            Enter the 6-digit code from your authenticator app
+            Enter the code
           </DialogDescription>
         </div>
 
